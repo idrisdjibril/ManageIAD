@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Tâches collaboratives{% endblock %}
+
+{% block content %}
+<h1>Tâches collaboratives</h1>
+<ul class="task-list">
+    {% for task in tasks %}
+    <li>
+        <input type="checkbox" {% if task.completed %}checked{% endif %} onchange="updateTask('{{ task.id }}', this.checked )">
+        <span class="task-title">{{ task.title }}</span>
+        <span class="task-assignee">Assigné à : {{ task.assignee }}</span>
+        <span class="task-due-date">Échéance : {{ task.due_date }}</span>
+    </li>
+    {% endfor %}
+</ul>
+<form method="post" class="new-task-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Ajouter une tâche</button>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateTask(taskId, completed) {
+    fetch('{% url "update_task" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({taskId: taskId, completed: completed})
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Erreur lors de la mise à jour de la tâche');
+        }
+    }).catch(error => {
+        console.error('Erreur:', error);
+    });
+}
+</script>
+{% endblock %}

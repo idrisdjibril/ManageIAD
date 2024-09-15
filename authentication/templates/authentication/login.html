@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background: url("{% static 'images/bg_inscription.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+        }
+        .btn-primary {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+        .form-control:focus {
+            border-color: #0056b3;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container h-screen flex justify-center items-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header text-center">
+                    <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo mb-3">
+                    <h2 class="font-bold text-gray-700">Bureau National de l'État Civil</h2>
+                    <h3 class="text-gray-500">CONNEXION</h3>
+                </div>
+
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.non_field_errors }}
+
+                        <div class="form-group">
+                            {{ form.username.label_tag }}
+                            {{ form.username|add_class:"form-control" }}
+                            {{ form.username.errors }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.password.label_tag }}
+                            {{ form.password|add_class:"form-control" }}
+                            {{ form.password.errors }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.profile.label_tag }}
+                            {{ form.profile|add_class:"form-control" }}
+                            {{ form.profile.errors }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Connexion</button>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p>Pas de compte? <a href="{% url 'register' %}" class="text-blue-600 hover:underline">Inscrivez-vous</a></p>
+                    </div>
+                    <div class="social-login text-center mt-3">
+                        <button class="btn btn-outline-primary">Gmail</button>
+                        <button class="btn btn-outline-primary">Facebook</button>
+                        <button class="btn btn-outline-primary">Twitter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

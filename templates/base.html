@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard BUNEC</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body class="flex flex-col h-screen bg-gray-100">
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <!-- Logo et nom de l'entreprise -->
+            <div class="flex items-center space-x-3">
+                <img src="{% static 'images/logo.png' %}" alt="Logo BUNEC" class="h-10 w-auto">
+                <span class="text-xl font-bold text-gray-800">BUNEC</span>
+            </div>
+            
+            <!-- Message de bienvenue et date/heure -->
+            <div class="text-center">
+                <p class="text-lg font-semibold text-gray-700">Bienvenue dans votre dashboard, {{ user.username }}</p>
+                <p id="current-date-time" class="text-sm text-gray-500"></p>
+            </div>
+            
+            <!-- Icônes de notification, messagerie et paramètres -->
+            <div class="flex items-center space-x-6">
+                <div class="relative">
+                    <a href="#" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span id="notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                    </a>
+                </div>
+                <div class="relative">
+                    <a href="#" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-envelope text-xl"></i>
+                        <span id="message-count" class="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                    </a>
+                </div>
+                <div class="relative">
+                    <button id="settings-menu-button" class="text-gray-600 hover:text-gray-800 focus:outline-none">
+                        <i class="fas fa-cog text-xl"></i>
+                    </button>
+                    <div id="settings-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden">
+                        <a href="{% url 'edit_user' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Éditer le profil</a>
+                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Déconnexion</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Menu latéral -->
+        <div class="bg-white shadow-md p-6 flex-shrink-0 w-64">
+            <div class="mb-6">
+                <h3 class="text-lg font-bold">Menu</h3>
+                <ul class="mt-4 space-y-2">
+                    <li><a href="{% url 'accueil' %}" class="text-gray-600 hover:text-gray-800">Accueil</a></li>
+                    <li><a href="{% url 'donnees' %}" class="text-gray-600 hover:text-gray-800">Données</a></li>
+                    <li><a href="{% url 'analyse_donnees' %}" class="text-gray-600 hover:text-gray-800">Analyse de données</a></li>
+                    <li><a href="{% url 'inbox' %}" class="text-gray-600 hover:text-gray-800">Collaboration</a></li>
+                    <li><a href="{% url 'logout' %}" class="text-gray-600 hover:text-gray-800">Déconnexion</a></li>
+                </ul>
+            </div>
+            {% if user.is_director %}
+            <div class="mb-6">
+                <h3 class="text-lg font-bold">Décision</h3>
+                <ul class="mt-4 space-y-2">
+                    <li><a href="{% url 'tableaux_statistiques' %}" class="text-gray-600 hover:text-gray-800">Tableaux statistiques</a></li>
+                    <li><a href="{% url 'diagrammes' %}" class="text-gray-600 hover:text-gray-800">Diagrammes</a></li>
+                </ul>
+            </div>
+            {% elif user.is_admin %}
+            <div class="mb-6">
+                <h3 class="text-lg font-bold">Gestion utilisateur</h3>
+                <ul class="mt-4 space-y-2">
+                    <li><a href="{% url 'liste_utilisateurs' %}" class="text-gray-600 hover:text-gray-800">Liste des utilisateurs</a></li>
+                    <li><a href="{% url 'creer_utilisateur' %}" class="text-gray-600 hover:text-gray-800">Créer un utilisateur</a></li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="flex-1 p-6 overflow-y-auto">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <footer class="bg-white shadow-md p-4 text-center text-gray-600">
+        &copy; 2024 BUNEC. Tous droits réservés.
+    </footer>
+
+    <script>
+        // Mise à jour de la date et de l'heure
+        function updateDateTime() {
+            const now = moment();
+            document.getElementById('current-date-time').textContent = now.format('DD/MM/YYYY HH:mm:ss');
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Gestion du menu des paramètres
+        const settingsButton = document.getElementById('settings-menu-button');
+        const settingsMenu = document.getElementById('settings-menu');
+        settingsButton.addEventListener('click', () => {
+            settingsMenu.classList.toggle('hidden');
+        });
+
+        // Fermer le menu des paramètres si on clique en dehors
+        document.addEventListener('click', (event) => {
+            if (!settingsButton.contains(event.target) && !settingsMenu.contains(event.target)) {
+                settingsMenu.classList.add('hidden');
+            }
+        });
+
+        // Simuler la mise à jour des notifications (à remplacer par une vraie logique côté serveur)
+        function updateNotifications() {
+            // Exemple : vérifier les nouvelles données toutes les 5 minutes
+            setInterval(() => {
+                fetch('/api/check-new-data')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('notification-count').textContent = data.newDataCount;
+                    });
+            }, 300000);
+        }
+
+        // Simuler la mise à jour des messages (à remplacer par une vraie logique côté serveur)
+        function updateMessages() {
+            // Exemple : vérifier les nouveaux messages toutes les 2 minutes
+            setInterval(() => {
+                fetch('/api/check-new-messages')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('message-count').textContent = data.newMessageCount;
+                    });
+            }, 120000);
+        }
+
+        updateNotifications();
+        updateMessages();
+    </script>
+</body>
+</html>

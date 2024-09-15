@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Collaboration{% endblock %}
+
+{% block content %}
+<h1>Espace de Collaboration</h1>
+<div class="dashboard">
+    <div class="widget">
+        <h2>Messages récents</h2>
+        <ul>
+            {% for message in recent_messages %}
+            <li><a href="{% url 'message_detail' message.id %}">{{ message.subject }}</a></li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'inbox' %}" class="btn">Voir tous les messages</a>
+    </div>
+    <div class="widget">
+        <h2>Tâches en cours</h2>
+        <ul>
+            {% for task in current_tasks %}
+            <li>{{ task.title }}</li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'tasks' %}" class="btn">Gérer les tâches</a>
+    </div>
+    <div class="widget">
+        <h2>Prochains événements</h2>
+        <ul>
+            {% for event in upcoming_events %}
+            <li>{{ event.title }} - {{ event.date }}</li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'calendar' %}" class="btn">Voir le calendrier</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Dossiers{% endblock %}
+
+{% block content %}
+<h1>Dossiers</h1>
+<ul class="folder-list">
+    {% for folder in folders %}
+    <li>
+        <a href="{% url 'folder_detail' folder.id %}">{{ folder.name }}</a>
+        <span class="message-count">({{ folder.message_set.count }})</span>
+    </li>
+    {% endfor %}
+</ul>
+<form method="post" class="new-folder-form">
+    {% csrf_token %}
+    <input type="text" name="folder_name" placeholder="Nouveau dossier">
+    <button type="submit">Créer</button>
+</form>
+{% endblock %}

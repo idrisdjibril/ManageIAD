@@ -1,0 +1,58 @@
+<!-- data_import/templates/data_import/data_table.html -->
+
+{% extends 'data_import/base.html' %}
+
+{% block title %}Tableau de données DHSI2{% endblock %}
+
+{% block content %}
+<h1>Tableau de données DHSI2</h1>
+
+<form method="get" action="{% url 'data_table' %}" class="mb-4">
+    <div class="form-row">
+        <div class="col-md-3 mb-3">
+            <input type="text" name="search" class="form-control" placeholder="Recherche" value="{{ search_query }}">
+        </div>
+        <div class="col-md-3 mb-3">
+            <select name="category" class="form-control">
+                <option value="">Toutes les catégories</option>
+                {% for col in columns %}
+                    <option value="{{ col }}" {% if category == col %}selected{% endif %}>{{ col }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 mb-3">
+            <input type="date" name="date" class="form-control" value="{{ date }}">
+        </div>
+        <div class="col-md-3 mb-3">
+            <button type="submit" class="btn btn-primary">Rechercher</button>
+            <a href="{% url 'export_pdf' %}?search={{ search_query }}&category={{ category }}&date={{ date }}" class="btn btn-secondary">Exporter en CSV</a>
+        </div>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                {% for col in columns %}
+                    <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+                <tr>
+                    {% for col in columns %}
+                        <td>{{ row|get_item:col }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'data_import/js/search.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Détail de l'analyse multicritère (MCDA)</h1>
+<div class="mcda-container">
+    <h2>Critères et pondérations</h2>
+    <table class="mcda-table">
+        <thead>
+            <tr>
+                <th>Critère</th>
+                <th>Pondération</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for criterion in mcda.criteria %}
+                <tr>
+                    <td>{{ criterion.name }}</td>
+                    <td>{{ criterion.weight }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Alternatives et scores</h2>
+    <table class="mcda-table">
+        <thead>
+            <tr>
+                <th>Alternative</th>
+                {% for criterion in mcda.criteria %}
+                    <th>{{ criterion.name }}</th>
+                {% endfor %}
+                <th>Score total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alternative in mcda.alternatives %}
+                <tr>
+                    <td>{{ alternative.name }}</td>
+                    {% for score in alternative.scores %}
+                        <td>{{ score }}</td>
+                    {% endfor %}
+                    <td>{{ alternative.total_score }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Résultat</h2>
+    <p>Meilleure alternative : {{ mcda.best_alternative }}</p>
+</div>
+{% endblock %}

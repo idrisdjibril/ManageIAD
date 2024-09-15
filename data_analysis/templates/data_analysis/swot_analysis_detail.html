@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Détail de l'analyse SWOT</h1>
+<div class="swot-container">
+    <div class="swot-section">
+        <h2>Forces</h2>
+        <ul>
+            {% for strength in swot.strengths %}
+                <li>{{ strength }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="swot-section">
+        <h2>Faiblesses</h2>
+        <ul>
+            {% for weakness in swot.weaknesses %}
+                <li>{{ weakness }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="swot-section">
+        <h2>Opportunités</h2>
+        <ul>
+            {% for opportunity in swot.opportunities %}
+                <li>{{ opportunity }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="swot-section">
+        <h2>Menaces</h2>
+        <ul>
+            {% for threat in swot.threats %}
+                <li>{{ threat }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Tableau de bord du Directeur</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Visualisation des données</h2>
+            <p>Accédez aux données importées dans le système.</p>
+            <a href="#" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Voir les données</a>
+        </div>
+        
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Générer des rapports</h2>
+            <p>Créez des tableaux et diagrammes statistiques.</p>
+            <a href="#" class="mt-4 inline-block bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Générer un rapport</a>
+        </div>
+        
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Prise de décision</h2>
+            <p>Analysez les résultats et prenez des décisions éclairées.</p>
+            <a href="#" class="mt-4 inline-block bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">Outils de décision</a>
+        </div>
+    </div>
+    
+    <div class="mt-12">
+        <h2 class="text-2xl font-bold mb-4">Collaboration</h2>
+        <div class="bg-white shadow rounded-lg p-6">
+            <p>Envoyez des messages à d'autres utilisateurs du système.</p>
+            <a href="#" class="mt-4 inline-block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">Messagerie</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

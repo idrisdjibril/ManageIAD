@@ -1,0 +1,6 @@
+/* data_import/static/data_import/css/styles.css */
+
+.table-responsive {
+    max-height: 600px;
+    overflow-y: auto;
+}

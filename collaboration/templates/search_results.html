@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Résultats de recherche{% endblock %}
+
+{% block content %}
+<h1>Résultats de recherche pour "{{ query }}"</h1>
+<ul>
+    {% for result in results %}
+    <li><a href="{% url 'message_detail' result.id %}">{{ result.subject }}</a></li>
+    {% empty %}
+    <li>Aucun résultat trouvé.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

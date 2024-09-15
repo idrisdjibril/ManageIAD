@@ -1,0 +1,14 @@
+{% extends "data_analysis/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Créer une nouvelle analyse{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Créer une nouvelle analyse pour {{ dataset.name }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-primary mt-3">Créer l'analyse</button>
+</form>
+{% endblock %}

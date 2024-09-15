@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails du message{% endblock %}
+
+{% block content %}
+<h1>{{ message.subject }}</h1>
+<p><strong>De :</strong> {{ message.sender }}</p>
+<p><strong>Date :</strong> {{ message.date }}</p>
+<div class="message-content">
+    {{ message.content|linebreaks }}
+</div>
+<a href="{% url 'compose' %}?reply_to={{ message.id }}" class="btn">Répondre</a>
+{% endblock %}

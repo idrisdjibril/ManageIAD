@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Boîte de réception{% endblock %}
+
+{% block content %}
+<h1>Boîte de réception</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Expéditeur</th>
+            <th>Objet</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+        <tr>
+            <td>{{ message.sender }}</td>
+            <td><a href="{% url 'message_detail' message.id %}">{{ message.subject }}</a></td>
+            <td>{{ message.date }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

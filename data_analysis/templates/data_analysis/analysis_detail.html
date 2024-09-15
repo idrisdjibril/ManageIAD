@@ -1,0 +1,28 @@
+{% extends "data_analysis/base.html" %}
+
+{% block title %}{{ analysis.name }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">{{ analysis.name }}</h1>
+<p>{{ analysis.description }}</p>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Détails de l'analyse</h5>
+        <p><strong>Type de graphique:</strong> {{ analysis.get_chart_type_display }}</p>
+        <p><strong>Axe X:</strong> {{ analysis.x_axis }}</p>
+        <p><strong>Axe Y:</strong> {{ analysis.y_axis }}</p>
+    </div>
+</div>
+
+<h2 class="mb-3">Graphique</h2>
+<div id="plotly-chart"></div>
+
+<a href="{% url 'export_pdf' analysis.pk %}" class="btn btn-primary mt-4">Exporter en PDF</a>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var graphJSON = JSON.parse('{{ graph_json|safe }}');
+    Plotly.newPlot('plotly-chart', graphJSON.data, graphJSON.layout);
+</script>
+{% endblock %}

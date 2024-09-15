@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages envoyés{% endblock %}
+
+{% block content %}
+<h1>Messages envoyés</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Destinataire</th>
+            <th>Objet</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in sent_messages %}
+        <tr>
+            <td>{{ message.recipient }}</td>
+            <td><a href="{% url 'message_detail' message.id %}">{{ message.subject }}</a></td>
+            <td>{{ message.date }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
