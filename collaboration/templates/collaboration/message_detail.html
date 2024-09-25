@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="message-detail" data-message-id="{{ message.id }}">
+    <h2>{{ message.subject }}</h2>
+
+    <p><strong>From:</strong> {{ message.sender }}</p>
+
+    <p><strong>To:</strong> {{ message.recipient }}</p>
+
+    <p><strong>Date:</strong> {{ message.created_at }}</p>
+
+    <div class="message-body">
+        {{ message.body|linebreaks }}
+    </div>
+
+    {% if message.attachment %}
+        <p><strong>Attachment:</strong> <a href="{{ message.attachment.url }}">{{ message.attachment.name }}</a></p>
+    {% endif %}
+    
+    <h3>Tags</h3>
+    <ul>
+        {% for tag in message.tags.all %}
+            <li>{{ tag.name }}</li>
+        {% empty %}
+            <li>No tags</li>
+        {% endfor %}
+    </ul>
+
+    <form id="add-tag-form" method="post" action="{% url 'add_tag' %}">
+        {% csrf_token %}
+        <input type="hidden" name="message_id" value="{{ message.id }}">
+        <input type="text" name="tag_name" placeholder="Add new tag">
+        <button type="submit">Add Tag</button>
+    </form>
+
+    <a href="{% url 'inbox' %}" class="button">Back to Inbox</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Mark message as read when opened
+    const messageDetail = document.querySelector('.message-detail');
+    if (messageDetail) {
+        const messageId = messageDetail.dataset.messageId;
+        fetch(`/collaboration/mark_as_read/${messageId}/`, {method: 'POST'})
+            .then(response => response.json())
+            .then(data => console.log(data));
+    }
+
+    // Add new tag
+    const addTagForm = document.getElementById('add-tag-form');
+    if (addTagForm) {
+        addTagForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(addTagForm);
+            fetch('/collaboration/add_tag/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.id) {
+                    const tagSelect = document.getElementById('id_tags');
+                    const option = new Option(data.name, data.id);
+                    tagSelect.add(option);
+                    addTagForm.reset();
+                }
+            });
+        });
+    }
+});
+</script>
+<style>
+    .unread {
+        font-weight: bold;
+    }
+
+    .message-detail {
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherche Avancée</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    {% load static %}
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .header, .footer {
+            background-color: #0056b3;
+            color: white;
+        }
+        .search-form {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        #results-table {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+    </head>
+    <body>
+        <header class="header py-3">
+            <div class="container">
+                <h1>BUNEC - Recherche Avancée</h1>
+            </div>
+        </header>
+    
+        <main class="container my-4">
+            <form id="search-form" class="search-form">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="column-select" class="form-label">Colonne</label>
+                        <select id="column-select" class="form-control"> <option value="">Toutes les catégories</option> 
+                            <option value="commune_id" >commune_id</option> 
+                            <option value="event" >event</option> 
+                            <option value="_program_stage_" >_program_stage_</option> 
+                            <option value="_date_de_saisie_" >_date_de_saisie_</option> 
+                            <option value="_stored_by_" >_stored_by_</option> 
+                            <option value="_created_by_" >_created_by_</option> 
+                            <option value="_last_updated_by_" >_last_updated_by_</option> 
+                            <option value="_last_updated_on_" >_last_updated_on_</option> 
+                            <option value="sync_status" >sync_status</option> 
+                            <option value="_scheduled_date_" >_scheduled_date_</option> 
+                            <option value="geometry" >geometry</option> 
+                            <option value="longitude" >longitude</option> 
+                            <option value="latitude" >latitude</option> 
+                            <option value="_organisation_unit_name_" >_organisation_unit_name_</option> 
+                            <option value="communes" >communes</option> 
+                            <option value="code_departement" >code_departement</option> 
+                            <option value="code_arrondissement" >code_arrondissement</option> 
+                            <option value="region" >region</option> 
+                            <option value="_organisation_unit_name_hierarchy_" >_organisation_unit_name_hierarchy_</option> 
+                            <option value="_organisation_unit_code_" >_organisation_unit_code_</option> 
+                            <option value="_program_status_" >_program_status_</option> <option value="_event_status_" >_event_status_</option> 
+                            <option value="_organisation_unit_" >_organisation_unit_</option> 
+                            <option value="bunec_qualite_officier" >bunec_qualite_officier</option> 
+                            <option value="date_naiss" >date_naiss</option> 
+                            <option value="nationalite_mere" >nationalite_mere</option> 
+                            <option value="officier" >officier</option> 
+                            <option value="domicile_mere" >domicile_mere</option> 
+                            <option value="poids_naiss" >poids_naiss</option> 
+                            <option value="noms_pere" >noms_pere</option> 
+                            <option value="test_variable" >test_variable</option> 
+                            <option value="niveau_scol_mere" >niveau_scol_mere</option> 
+                            <option value="date_mere" >date_mere</option> 
+                            <option value="telephone_mere" >telephone_mere</option> 
+                            <option value="telephone_pere" >telephone_pere</option> 
+                            <option value="domicile_pere" >domicile_pere</option> 
+                            <option value="ref_doc_mere" >ref_doc_mere</option> 
+                            <option value="lieu_naiss" >lieu_naiss</option> 
+                            <option value="bunec_date_dernier_deces_vivant" >bunec_date_dernier_deces_vivant</option> 
+                            <option value="taille_naiss" >taille_naiss</option> 
+                            <option value="bunec_nationalite_pere" >bunec_nationalite_pere</option> 
+                            <option value="profession_mere" >profession_mere</option> 
+                            <option value="type_naissance" >type_naissance</option> 
+                            <option value="bunec_signature_officier" >bunec_signature_officier</option> 
+                            <option value="bunec_telephone_declarant" >bunec_telephone_declarant</option> 
+                            <option value="num_dec" >num_dec</option> 
+                            <option value="bunec_signature_personne_en_charge" >bunec_signature_personne_en_charge</option> 
+                            <option value="profession_pere" >profession_pere</option> 
+                            <option value="lieu_mere" >lieu_mere</option> 
+                            <option value="declarant" >declarant</option> 
+                            <option value="noms_enfant" >noms_enfant</option> 
+                            <option value="date_pere" >date_pere</option> 
+                            <option value="bunec_niveau_scol_pere" >bunec_niveau_scol_pere</option> 
+                            <option value="situation_matrimoniale" >situation_matrimoniale</option> 
+                            <option value="bunec_code_arrondissement_cec" >bunec_code_arrondissement_cec</option> 
+                            <option value="bunec_date_of_death_sk" >bunec_date_of_death_sk</option> 
+                            <option value="bunec_date_repection" >bunec_date_repection</option> 
+                            <option value="bunec_nb_enfants_vivant" >bunec_nb_enfants_vivant</option> 
+                            <option value="rang_naiss" >rang_naiss</option> 
+                            <option value="bunec_personne_assist_mere" >bunec_personne_assist_mere</option> 
+                            <option value="date_dec_naiss" >date_dec_naiss</option> 
+                            <option value="ref_doc_pere" >ref_doc_pere</option> 
+                            <option value="sexe" >sexe</option> 
+                            <option value="bunec_duree_residence" >bunec_duree_residence</option> 
+                            <option value="_crvs_birth_déclarations_hospitalières_de_naissance_" >_crvs_birth_déclarations_hospitalières_de_naissance_</option> 
+                            <option value="bunec_nb_deces_foetal" >bunec_nb_deces_foetal</option> 
+                            <option value="bunec_date_signature" >bunec_date_signature</option> 
+                            <option value="bunec_date_signature_declarant" >bunec_date_signature_declarant</option> 
+                            <option value="bunec_lieu_naissance" >bunec_lieu_naissance</option> 
+                            <option value="noms_mere" >noms_mere</option> 
+                            <option value="code_departement_1" >code_departement_1</option> 
+                            <option value="bunec_signature_declarant" >bunec_signature_declarant</option> 
+                            <option value="bunec_code_arrondissement_attestation" >bunec_code_arrondissement_attestation</option> 
+                            <option value="prenoms_enfant" >prenoms_enfant</option> 
+                            <option value="qualite" >qualite</option> 
+                            <option value="import_date" >import_date</option> 
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="search-input" class="form-label">Valeur de recherche</label>
+                        <input type="text" id="search-input" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date-from" class="form-label">Date de début</label>
+                        <input type="date" id="date-from" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date-to" class="form-label">Date de fin</label>
+                        <input type="date" id="date-to" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Rechercher</button>
+                        <button type="button" id="export-pdf" class="btn btn-secondary">Exporter en PDF</button>
+                    </div>
+                </div>
+            </form>
+    
+            <div class="table-responsive">
+                <table id="results-table" class="table table-striped">
+                    <thead>
+                        <tr>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+    
+            <nav aria-label="Pagination des résultats">
+                <ul class="pagination justify-content-center">
+                </ul>
+            </nav>
+        </main>
+    
+        <footer class="footer py-3 mt-4">
+            <div class="container text-center">
+                <span>© 2023 BUNEC - Tous droits réservés</span>
+            </div>
+        </footer>
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+        <script src="/static/data_import/js/advanced_search.js"></script>
+
+       
+
+</body>
+</html>

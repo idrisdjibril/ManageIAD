@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Inbox</h2>
+
+{% if recipient %}
+    <h3>Conversation with {{ recipient.username }}</h3>
+    <div class="message-list">
+        {% for message in messages %}
+            <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
+                <p><strong>{{ message.sender.username }}</strong> - {{ message.created_at }}</p>
+                <p>{{ message.body }}</p>
+            </div>
+        {% empty %}
+            <p>No messages yet.</p>
+        {% endfor %}
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Send</button>
+    </form>
+{% else %}
+    <h3>Your Conversations</h3>
+    <ul class="conversation-list">
+        {% for user in users %}
+            <li>
+                <a href="{% url 'inbox' recipient_username=user.username %}">
+                    {{ user.username }}
+                </a>
+            </li>
+        {% empty %}
+            <li>No conversations yet.</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageList = document.getElementById('message-list');
+
+    messageList.addEventListener('click', function(e) {
+        const target = e.target;
+        const messageRow = target.closest('tr');
+        const messageId = messageRow.dataset.messageId;
+
+        if (target.classList.contains('view-message')) {
+            const bodyRow = messageRow.nextElementSibling;
+            bodyRow.style.display = bodyRow.style.display === 'none' ? '' : 'none';
+        } else if (target.classList.contains('edit-message')) {
+            enableEditing(messageRow);
+        } else if (target.classList.contains('save-message')) {
+            saveMessage(messageRow);
+        } else if (target.classList.contains('cancel-edit')) {
+            cancelEditing(messageRow);
+        }
+    });
+
+    function enableEditing(messageRow) {
+        const subjectSpan = messageRow.querySelector('.message-subject');
+        const subjectInput = messageRow.querySelector('.edit-subject');
+        const bodyDiv = messageRow.nextElementSibling.querySelector('.message-content');
+        const bodyTextarea = messageRow.nextElementSibling.querySelector('.edit-body');
+
+        subjectSpan.style.display = 'none';
+        subjectInput.style.display = '';
+        bodyDiv.style.display = 'none';
+        bodyTextarea.style.display = '';
+
+        messageRow.querySelector('.edit-message').style.display = 'none';
+        messageRow.querySelector('.save-message').style.display = '';
+        messageRow.querySelector('.cancel-edit').style.display = '';
+    }
+
+    function saveMessage(messageRow) {
+        const messageId = messageRow.dataset.messageId;
+        const subject = messageRow.querySelector('.edit-subject').value;
+        const body = messageRow.nextElementSibling.querySelector('.edit-body').value;
+
+        fetch(`/collaboration/edit/${messageId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ subject, body })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                updateMessageDisplay(messageRow, subject, body);
+                cancelEditing(messageRow);
+            } else {
+                alert('Failed to save the message. Please try again.');
+            }
+        });
+    }
+
+    function cancelEditing(messageRow) {
+        const subjectSpan = messageRow.querySelector('.message-subject');
+        const subjectInput = messageRow.querySelector('.edit-subject');
+        const bodyDiv = messageRow.nextElementSibling.querySelector('.message-content');
+        const bodyTextarea = messageRow.nextElementSibling.querySelector('.edit-body');
+
+        subjectSpan.style.display = '';
+        subjectInput.style.display = 'none';
+        bodyDiv.style.display = '';
+        bodyTextarea.style.display = 'none';
+
+        messageRow.querySelector('.edit-message').style.display = '';
+        messageRow.querySelector('.save-message').style.display = 'none';
+        messageRow.querySelector('.cancel-edit').style.display = 'none';
+    }
+
+    function updateMessageDisplay(messageRow, subject, body) {
+        messageRow.querySelector('.message-subject').textContent = subject;
+        messageRow.nextElementSibling.querySelector('.message-content').textContent = body;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+<style>
+    /* General styles */
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f4f4f4;
+    }
+    
+    .container {
+        width: 80%;
+        margin: auto;
+        overflow: hidden;
+        padding: 20px;
+    }
+    
+    h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+    }
+    
+    /* Button styles */
+    .button {
+        display: inline-block;
+        background: #3498db;
+        color: #fff;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background 0.3s ease;
+    }
+    
+    .button:hover {
+        background: #2980b9;
+    }
+    
+    /* Table styles */
+    #message-list {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    }
+    
+    #message-list th, #message-list td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    #message-list th {
+        background-color: #3498db;
+        color: #fff;
+    }
+    
+    #message-list tr:hover {
+        background-color: #f5f5f5;
+    }
+    
+    /* Unread message style */
+    .unread {
+        font-weight: bold;
+    }
+    
+    /* Message body row */
+    .message-body td {
+        padding: 20px;
+        background-color: #ecf0f1;
+    }
+    
+    /* Edit mode styles */
+    .edit-subject, .edit-body {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #bdc3c7;
+        border-radius: 3px;
+        font-size: 14px;
+    }
+    
+    .edit-body {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    /* Action buttons */
+    .view-message, .edit-message, .save-message, .cancel-edit {
+        background: #2ecc71;
+        color: #fff;
+        border: none;
+        padding: 5px 10px;
+        margin-right: 5px;
+        cursor: pointer;
+        border-radius: 3px;
+        transition: background 0.3s ease;
+    }
+    
+    .edit-message {
+        background: #f39c12;
+    }
+    
+    .save-message {
+        background: #27ae60;
+    }
+    
+    .cancel-edit {
+        background: #e74c3c;
+    }
+    
+    .view-message:hover, .edit-message:hover, .save-message:hover, .cancel-edit:hover {
+        opacity: 0.8;
+    }
+    
+    /* Delete link */
+    a[href^="/collaboration/delete/"] {
+        color: #e74c3c;
+        text-decoration: none;
+    }
+    
+    a[href^="/collaboration/delete/"]:hover {
+        text-decoration: underline;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .container {
+            width: 95%;
+        }
+        
+        #message-list th, #message-list td {
+            padding: 8px;
+        }
+        
+        .button, .view-message, .edit-message, .save-message, .cancel-edit {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+    }
+
+    .message-subject, .message-content, .edit-subject, .edit-body {
+    transition: all 0.3s ease;
+}
+
+.edit-subject, .edit-body {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+}
+
+.editing .edit-subject, .editing .edit-body {
+    opacity: 1;
+    max-height: 500px;
+}
+
+.editing .message-subject, .editing .message-content {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+}
+
+.message-list {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.message {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.message.sent {
+    background-color: #dcf8c6;
+    margin-left: 20%;
+}
+
+.message.received {
+    background-color: #fce7bc;
+    margin-right: 20%;
+}
+
+.conversation-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.conversation-list li {
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.conversation-list li:last-child {
+    border-bottom: none;
+}
+
+.conversation-list a {
+    text-decoration: none;
+    color: #333;
+}
+
+.conversation-list a:hover {
+    color: #3498db;
+}
+
+</style>
+{% endblock %}

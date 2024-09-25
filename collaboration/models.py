@@ -1,34 +1,30 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
 class Message(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='received_messages')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='sent_messages')
     subject = models.CharField(max_length=255)
-    content = models.TextField()
-    date = models.DateTimeField(auto_now_add=True)
-    read = models.BooleanField(default=False)
+    body = models.TextField()
+    attachment = models.FileField(upload_to='message_attachments/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    is_deleted_by_sender = models.BooleanField(default=False)
+    is_deleted_by_recipient = models.BooleanField(default=False)
+    tags = models.ManyToManyField('Tag', blank=True)
 
-class Folder(models.Model):
-    name = models.CharField(max_length=255)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    messages = models.ManyToManyField(Message)
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-class Group(models.Model):
-    name = models.CharField(max_length=255)
-    members = models.ManyToManyField(User)
+    def __str__(self):
+        return self.name
 
-class Event(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
-    organizer = models.ForeignKey(User, on_delete=models.CASCADE)
-    participants = models.ManyToManyField(User, related_name='events')
+class Attachment(models.Model):
+    file = models.FileField(upload_to='attachments/')
+    message = models.ForeignKey('Message', on_delete=models.CASCADE, related_name='attachments')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
 
-class Task(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    assignee = models.ForeignKey(User, on_delete=models.CASCADE)
-    due_date = models.DateField()
-    completed = models.BooleanField(default=False)
+    def __str__(self):
+        return self.file.name
+

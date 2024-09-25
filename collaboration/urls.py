@@ -2,16 +2,13 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.collaboration, name='collaboration'),
     path('inbox/', views.inbox, name='inbox'),
+    path('inbox/<str:recipient_username>/', views.inbox, name='inbox'),
     path('compose/', views.compose, name='compose'),
     path('message/<int:message_id>/', views.message_detail, name='message_detail'),
-    path('sent/', views.sent, name='sent'),
-    path('search/', views.search_results, name='search_results'),
-    path('folders/', views.folders, name='folders'),
-    path('groups/', views.groups, name='groups'),
-    path('calendar/', views.calendar, name='calendar'),
-    path('get_events/', views.get_events, name='get_events'),
-    path('tasks/', views.tasks, name='tasks'),
-    path('update_task/', views.update_task, name='update_task'),
+    path('delete/<int:message_id>/', views.delete_message, name='delete_message'),
+    path('mark_as_read/<int:message_id>/', views.mark_as_read, name='mark_as_read'),
+    path('add_tag/', views.add_tag, name='add_tag'),
+    path('edit/<int:message_id>/', views.edit_message, name='edit_message'),
+    path('get_users/', views.get_users, name='get_users'),
 ]

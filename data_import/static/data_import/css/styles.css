@@ -1,6 +1,47 @@
-/* data_import/static/data_import/css/styles.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #fce7bc;
+}
 
-.table-responsive {
-    max-height: 600px;
-    overflow-y: auto;
+h1 {
+    color: #333;
+}
+
+.search-container {
+    margin-bottom: 20px;
+}
+
+input, select, button {
+    margin: 5px;
+    padding: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#chart-container {
+    margin-top: 20px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }

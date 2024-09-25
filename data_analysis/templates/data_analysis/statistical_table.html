@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h1>{{ analysis.title }} - Tableau Statistique</h1>
+
+<p>{{ analysis.description }}</p>
+
+<div id="table-container">
+    {{ table_html|safe }}
+</div>
+
+<button id="save-pdf">Enregistrer en PDF</button>
+
+{% if user.role == 'directeur' %}
+<a href="{% url 'decision_making' analysis_id=analysis.id %}">Prendre une décision</a>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const savePdfButton = document.getElementById('save-pdf');
+    
+    savePdfButton.addEventListener('click', function() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        const title = document.querySelector('h1').textContent;
+        const description = document.querySelector('p').textContent;
+        const tableHtml = document.getElementById('table-container').innerHTML;
+        
+        doc.text(title, 10, 10);
+        doc.text(description, 10, 20);
+        
+        doc.autoTable({
+            html: '#table-container table',
+            startY: 30,
+            theme: 'grid',
+            styles: {
+                fontSize: 8,
+                cellPadding: 2,
+                overflow: 'linebreak',
+                cellWidth: 'wrap'
+            },
+            columnStyles: {
+                0: {cellWidth: 'auto'}
+            }
+        });
+        
+        doc.save('tableau_statistique.pdf');
+    });
+});
+</script>
+{% endblock %}

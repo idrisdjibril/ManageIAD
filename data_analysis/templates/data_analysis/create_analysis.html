@@ -1,14 +1,17 @@
-{% extends "data_analysis/base.html" %}
-{% load crispy_forms_tags %}
-
-{% block title %}Créer une nouvelle analyse{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<h1 class="mb-4">Créer une nouvelle analyse pour {{ dataset.name }}</h1>
+<h1>Créer une nouvelle analyse</h1>
 
-<form method="post">
+<form method="post" action="{% url 'create_analysis' %}">
     {% csrf_token %}
-    {{ form|crispy }}
-    <button type="submit" class="btn btn-primary mt-3">Créer l'analyse</button>
+    {{ form.as_p }}
+    <label for="analysis_type">Type d'analyse:</label>
+    <select name="analysis_type" id="analysis_type" required>
+        <option value="table">Tableau statistique</option>
+        <option value="chart">Diagramme statistique</option>
+    </select>
+    <button type="submit">Créer l'analyse</button>
 </form>
 {% endblock %}

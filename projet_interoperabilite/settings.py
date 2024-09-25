@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -39,26 +40,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'data_import',
-    'rest_framework',
-    'django_celery_results',
-    'crispy_forms',
-    'taggit',
-    'ckeditor',
-    'collaboration',
-    'channels',
-    'widget_tweaks',
-    'management',
+    'data_analysis',
     'authentication',
     'crispy_forms',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'django_otp',
-    'django_otp.plugins.otp_totp',
-    'two_factor',
+    'django_cleanup',
+    'collaboration',
     'axes',
-    'crispy_tailwind',
-    #'captcha',
+    'corsheaders',
+    #'django_elasticsearch_dsl',
+    
 ]
 
 MIDDLEWARE = [
@@ -72,7 +62,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_otp.middleware.OTPMiddleware',
     'axes.middleware.AxesMiddleware',
-    'two_factor.middleware.threadlocals.ThreadLocals',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'projet_interoperabilite.urls'
@@ -145,20 +135,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Celery Configuration
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'django-db'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
 
 # Logging Configuration
 LOGGING = {
@@ -188,109 +171,36 @@ LOGGING = {
 }
 
 
-# Cache Configuration
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
-    }
-}
-
+AUTH_USER_MODEL = 'authentication.Authenticate'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
-ASGI_APPLICATION = 'projet_interoperabilite.asgi.application'
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-        },
-    },
-}
+LOGIN_URL = '/auth/login/'
+LOGIN_REDIRECT_URL = '/auth/redirect/'
+LOGOUT_REDIRECT_URL = '/auth/home/'
 
 AUTHENTICATION_BACKENDS = [
-    'axes.backends.AxesBackend',
     'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
+    'axes.backends.AxesStandaloneBackend',
+    # other backends...
 ]
 
-# Django-allauth settings
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
 
-AUTH_USER_MODEL = 'authentication.CustomUser'
-
-LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'login'
-
-CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
-CRISPY_TEMPLATE_PACK = "tailwind"
-
-# Configuration de ReCaptcha
-#RECAPTCHA_PUBLIC_KEY = 'votre_cle_publique'
-#RECAPTCHA_PRIVATE_KEY = 'votre_cle_privee'
-
-# Configuration de la sécurité
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-
-# Configuration de django-axes
+# Configuration d'Axes
+AXES_ENABLED = True
 AXES_FAILURE_LIMIT = 5
 AXES_LOCK_OUT_AT_FAILURE = True
-AXES_COOLOFF_TIME = 1  # 1 heure
+AXES_COOLOFF_TIME = 1 
 
-# Configuration de l'authentification à deux facteurs
-LOGIN_URL = 'two_factor:login'
-LOGIN_REDIRECT_URL = 'two_factor:profile'
+#CORS_ALLOWED_ORIGINS = [
+    #"http://localhost:8000",
+    #"http://127.0.0.1:8000",
+    # Ajoutez ici les origines de votre frontend
+#]
+CORS_ALLOW_ALL_ORIGINS = True
 
-# Configuration de la limitation du taux de requêtes
-RATELIMIT_ENABLE = True
-RATELIMIT_USE_CACHE = 'default'
-RATELIMIT_FAIL_OPEN = False
-
-# Configuration de la sécurité des cookies
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-
-# Configuration HSTS
-SECURE_HSTS_SECONDS = 31536000  # 1 an
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-
-# Autres paramètres de sécurité
-SECURE_SSL_REDIRECT = True
-SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
-
-# Configuration de la journalisation
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': 'django_security.log',
-        },
-    },
-    'loggers': {
-        'django.security': {
-            'handlers': ['file'],
-            'level': 'WARNING',
-            'propagate': True,
-        },
-    },
-}
+#ELASTICSEARCH_DSL = {
+    #'default': {
+        #'hosts': 'localhost:9200'
+   # },
+#}

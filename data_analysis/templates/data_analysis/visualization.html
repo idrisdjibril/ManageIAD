@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h1>{{ analysis.title }} - Visualisation</h1>
+
+<p>{{ analysis.description }}</p>
+
+<form id="visualization-form" method="post">
+    {% csrf_token %}
+    
+    <label for="chart_type">Type de graphique:</label>
+    <select name="chart_type" id="chart_type">
+        <option value="bar">Diagramme en barres</option>
+        <option value="line">Graphique linéaire</option>
+        <option value="scatter">Nuage de points</option>
+        <option value="pie">Diagramme circulaire</option>
+        <option value="histogram">Histogramme</option>
+    </select>
+
+    <label for="x_axis">Axe X:</label>
+    <select name="x_axis" id="x_axis">
+        {% for column in analysis.data.0.keys %}
+            <option value="{{ column }}">{{ column }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="y_axis">Axe Y:</label>
+    <select name="y_axis" id="y_axis">
+        {% for column in analysis.data.0.keys %}
+            <option value="{{ column }}">{{ column }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Générer le graphique</button>
+</form>
+
+<div id="chart-container"></div>
+
+<button id="save-pdf">Enregistrer en PDF</button>
+
+{% if user.role == 'directeur' %}
+<a href="{% url 'decision_making' analysis_id=analysis.id %}">Prendre une décision</a>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/visualization.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+{% endblock %}

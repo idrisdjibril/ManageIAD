@@ -1,80 +1,105 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* Dégradé de fond pour la page */
         body {
-            background: url("{% static 'images/bg_inscription.jpg' %}") no-repeat center center fixed;
-            background-size: cover;
+            background: linear-gradient(120deg, #89f7fe, #66a6ff);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
+
+        /* Style personnalisé pour la carte de connexion */
         .card {
             background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
+            border-radius: 20px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
         }
+
+        /* Bouton principal */
         .btn-primary {
-            background-color: #0056b3;
-            border-color: #004085;
+            background-image: linear-gradient(to right, #66a6ff, #89f7fe);
+            border: none;
+            transition: background 0.3s ease;
         }
-        .form-control:focus {
-            border-color: #0056b3;
-            box-shadow: none;
+        .btn-primary:hover {
+            background-image: linear-gradient(to right, #89f7fe, #66a6ff);
+        }
+
+        /* Icones dans les champs */
+        .form-group {
+            position: relative;
+        }
+        .form-group i {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 15px;
+            color: #66a6ff;
+        }
+        .form-control {
+            padding-left: 40px;
+        }
+
+        /* Image du logo centrée */
+        .logo {
+            width: 100px;
+            margin: 0 auto;
         }
     </style>
 </head>
 <body>
-    <div class="container h-screen flex justify-center items-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg">
-                <div class="card-header text-center">
+
+    <!-- Section du formulaire de connexion -->
+    <div class="container">
+        <div class="max-w-md mx-auto">
+            <div class="card p-8">
+                <div class="text-center mb-6">
                     <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo mb-3">
-                    <h2 class="font-bold text-gray-700">Bureau National de l'État Civil</h2>
-                    <h3 class="text-gray-500">CONNEXION</h3>
+                    <h2 class="text-2xl font-semibold text-gray-700">Bureau National de l'État Civil</h2>
+                    <h3 class="text-xl text-gray-500">CONNEXION</h3>
                 </div>
 
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ form.non_field_errors }}
-
-                        <div class="form-group">
-                            {{ form.username.label_tag }}
-                            {{ form.username|add_class:"form-control" }}
-                            {{ form.username.errors }}
-                        </div>
-
-                        <div class="form-group">
-                            {{ form.password.label_tag }}
-                            {{ form.password|add_class:"form-control" }}
-                            {{ form.password.errors }}
-                        </div>
-
-                        <div class="form-group">
-                            {{ form.profile.label_tag }}
-                            {{ form.profile|add_class:"form-control" }}
-                            {{ form.profile.errors }}
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-block">Connexion</button>
-                    </form>
-
-                    <div class="text-center mt-4">
-                        <p>Pas de compte? <a href="{% url 'register' %}" class="text-blue-600 hover:underline">Inscrivez-vous</a></p>
+                <!-- Formulaire de connexion -->
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group mb-4">
+                        <label for="username" class="sr-only">Nom d'utilisateur</label>
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" id="username" class="form-control block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Nom d'utilisateur">
                     </div>
-                    <div class="social-login text-center mt-3">
-                        <button class="btn btn-outline-primary">Gmail</button>
-                        <button class="btn btn-outline-primary">Facebook</button>
-                        <button class="btn btn-outline-primary">Twitter</button>
+
+                    <div class="form-group mb-6">
+                        <label for="password" class="sr-only">Mot de passe</label>
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="password" class="form-control block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Mot de passe">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full py-2 text-white text-lg font-semibold rounded-md">Connexion</button>
+                </form>
+
+                <!-- Liens vers les connexions sociales -->
+                <div class="mt-6 text-center">
+                    <p class="text-gray-500">Ou connectez-vous avec</p>
+                    <div class="flex justify-center mt-4 space-x-4">
+                        <a href="#" class="text-blue-600"><i class="fab fa-facebook fa-2x"></i></a>
+                        <a href="#" class="text-blue-400"><i class="fab fa-twitter fa-2x"></i></a>
+                        <a href="#" class="text-red-500"><i class="fab fa-google fa-2x"></i></a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- JS pour les icônes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
 </body>
 </html>

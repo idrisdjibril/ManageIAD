@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUNEC - Système d'Interopérabilité</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #7ebef7;
+            --background-color: #f8f9fa;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #7ebef7;
+            color: var(--text-color);
+        }
+
+        .header {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            width: 50px;
+            height: auto;
+            margin-right: 1rem;
+        }
+
+        .bunec-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .welcome-message {
+            text-align: center;
+        }
+
+        .date-time {
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+        }
+
+        .icons-container {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .icon {
+            position: relative;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.8rem;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary-color);
+            color: white;
+            height: calc(100vh - 80px);
+            padding-top: 20px;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+
+        .menu-item {
+            padding: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .menu-item.active {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .menu-item i {
+            margin-right: 10px;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .footer-section {
+            flex: 1;
+            margin: 1rem;
+            min-width: 200px;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .footer-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        .copyright {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .settings-dropdown {
+    display: none;
+    position: absolute;
+    top: 50px; /* Ajustez pour placer en dessous de l'icône */
+    right: 10px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    z-index: 1;
+    min-width: 150px;
+}
+
+.settings-dropdown a {
+    display: block;
+    padding: 10px;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.settings-dropdown a:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header class="header">
+        <div class="logo-container">
+            <img src="{% static 'images/logo.png' %}" alt="BUNEC Logo" class="logo">
+            <span class="bunec-title">BUNEC</span>
+        </div>
+        <div class="welcome-message">
+            <p>Bienvenue à vous {{ request.user.username }} sur le site d'interopérabilité</p>
+            <p class="date-time" id="current-date-time"></p>
+        </div>
+        <div class="icons-container">
+            <div class="icon" id="notification-icon">
+                <i class="fas fa-bell"></i>
+                <span class="notification-count">5</span>
+            </div>
+            <div class="icon" id="message-icon">
+                <i class="fas fa-envelope"></i>
+                <span class="notification-count">4</span>
+            </div>
+            <div class="icon" id="settings-icon">
+                <i class="fas fa-cog"></i>
+                <div id="settings-dropdown" class="settings-dropdown">
+                    <a href="{% url 'edit_profile' %}">Profil</a>
+                    <a href="{% url 'logout' %}">Déconnexion</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div style="display: flex;">
+        <nav class="sidebar">
+            {% if request.user.role == 'administrateur' %}
+                <a href="{% url 'dashboard_admin' %}" class="menu-item"><i class="fas fa-home"></i> Accueil</a>
+            {% elif request.user.role == 'directeur' %}
+                <a href="{% url 'dashboard_director' %}" class="menu-item"><i class="fas fa-home"></i> Accueil</a>
+            {% else %}
+                <a href="{% url 'dashboard_agent' %}" class="menu-item"><i class="fas fa-home"></i> Accueil</a>
+            {% endif %}
+            <a href="{% url 'data_table' %}" class="menu-item"><i class="fas fa-database"></i> Données</a>
+            <a href="{% url 'analysis' %}" class="menu-item"><i class="fas fa-chart-bar"></i> Analyse</a>
+            <a href="{% url 'compose' %}" class="menu-item"><i class="fas fa-users"></i> Collaboration</a>
+            {% if request.user.role == 'directeur' %}
+                <a href="{% url 'decision_making' %}" class="menu-item"><i class="fas fa-chess"></i> Décision</a>
+            {% endif %}
+            {% if request.user.role == 'administrateur' %}
+                <a href="{% url 'user_list' %}" class="menu-item"><i class="fas fa-user-cog"></i> Gestion des utilisateurs</a>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="menu-item"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+        </nav>
+
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>À propos du BUNEC</h3>
+                <p>Le Bureau National de l'État Civil (BUNEC) est chargé de la gestion et de la modernisation de l'état civil au Cameroun.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Liens utiles</h3>
+                <ul>
+                    <li><a href="#">Ministère de la Santé</a></li>
+                    <li><a href="#">Portail du Gouvernement</a></li>
+                    <li><a href="#">Statistiques Nationales</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p>BUNEC<br>
+                123 Rue de l'État Civil<br>
+                Yaoundé, Cameroun<br>
+                <i class="fas fa-phone"></i> +237 123 456 789<br>
+                <i class="fas fa-envelope"></i> info@bunec.cm</p>
+            </div>
+        </div>
+        <div class="copyright">
+            © 2023 BUNEC - Tous droits réservés
+        </div>
+    </footer>
+
+    <script>
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById('current-date-time').textContent = now.toLocaleDateString('fr-FR', options);
+        }
+
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        document.getElementById('settings-icon').addEventListener('click', function() {
+            // Obtenez l'élément du menu déroulant
+            var dropdown = document.getElementById('settings-dropdown');
+
+            // Afficher ou masquer le menu
+            if (dropdown.style.display === "block") {
+                dropdown.style.display = "none";
+            } else {
+                dropdown.style.display = "block";
+            }
+        });
+
+        // Cacher le menu si on clique ailleurs sur la page
+        window.addEventListener('click', function(event) {
+            if (!event.target.matches('#settings-icon') && !event.target.closest('#settings-icon')) {
+                document.getElementById('settings-dropdown').style.display = 'none';
+            }
+        });
+
+ 
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                if (item.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

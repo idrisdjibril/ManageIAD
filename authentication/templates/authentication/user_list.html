@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block content %}
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #007bff;
+    color: #fff;
+    padding: 15px 20px;
+}
+
+.card-header h2 {
+    margin: 0;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.btn-primary {
+    background-color: #28a745;
+    border: none;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.table th, .table td {
+    border: 1px solid #dee2e6;
+    padding: 12px;
+    text-align: left;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    color: #333;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 0.875rem;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.page-item {
+    margin: 0 5px;
+}
+
+.page-link {
+    color: #007bff;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    padding: 5px 10px;
+    text-decoration: none;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+</style>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2>Gestion des utilisateurs</h2>
+        <a href="{% url 'user_add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Ajouter un utilisateur</a>
+    </div>
+    <div class="card-body">
+        <h3>Liste des utilisateurs du système</h3>
+        <p>Nombre d'utilisateurs : {{ users|length }}</p>
+        <p>Colonnes : {{ columns|join:", " }}</p>
+        <table id="userTable" class="table table-striped">
+            <thead>
+                <tr>
+                    {% for column in columns %}
+                        <th>{{ column|title }}</th>
+                    {% endfor %}
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr data-id="{{ user.id }}">
+                    {% for column in columns %}
+                    <td colspan="{{ columns|length }}">Débogage : {{ user }}</td>
+                        <td>{{ user|getattribute:column }}</td>
+                    {% endfor %}
+                    <td>
+                        <a href="{% url 'user_edit' user_id=user.id %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Éditer</a>
+                        <button onclick="deleteUser(this)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Supprimer</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if users.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if users.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ users.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                
+                {% for num in users.paginator.page_range %}
+                    {% if users.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if users.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ users.next_page_number }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function editUser(button) {
+    const row = button.closest('tr');
+    const userId = row.dataset.id;
+    const cells = row.querySelectorAll('td');
+    const data = {};
+    
+    cells.forEach((cell, index) => {
+        if (index < cells.length - 1) {  // Skip the last cell (actions)
+            const key = document.querySelector('#userTable th:nth-child(' + (index + 1) + ')').textContent.toLowerCase();
+            const value = cell.textContent;
+            data[key] = value;
+        }
+    });
+
+    // Implement edit functionality (e.g., open a modal with a form)
+    console.log('Editing user:', data);
+    // After editing, call updateUser with the new data
+}
+
+function updateUser(userId, newData) {
+    fetch('{% url "user_edit" user_id=0 %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({id: userId, data: newData})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update the table row with new data
+            location.reload();  // For simplicity, we're reloading the page
+        }
+    });
+}
+
+function deleteUser(button) {
+    const row = button.closest('tr');
+    const userId = row.dataset.id;
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
+        fetch('{% url "user_delete" user_id=0 %}'.replace('0', userId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                row.remove();
+            }
+        });
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Fonction pour mettre à jour la table en temps réel
+function updateTable() {
+    fetch('{% url "user_list" %}')
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const newDoc = parser.parseFromString(html, 'text/html');
+            const newTable = newDoc.getElementById('userTable');
+            document.getElementById('userTable').innerHTML = newTable.innerHTML;
+        });
+}
+
+// Mettre à jour la table toutes les 30 secondes
+setInterval(updateTable, 30000);
+</script>
+{% endblock %}

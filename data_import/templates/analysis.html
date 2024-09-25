@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load static %}
+
+{% block content %}
+<h1>Analyse de données</h1>
+
+<h2>Sélection des données</h2>
+
+<form id="data-selection-form" method="post" action="{% url 'select_data' %}" enctype="multipart/form-data">
+   {% csrf_token %}
+
+    <div id="step1">
+        <h3>Étape 1: Sélectionner le nombre de colonnes</h3>
+        <label for="column_count">Nombre de colonnes (1-4):</label>
+        <input type="number" id="column_count" name="column_count" min="1" max="4" required>
+        <button type="button" id="next1">Suivant</button>
+    </div>
+
+    <div id="step2" style="display:none;">
+        <h3>Étape 2: Sélectionner les colonnes</h3>
+        <div class="column-selection-container">
+            <div id="column_selection" class="column-selection">
+                <!-- Les colonnes seront ajoutées ici par JavaScript -->
+            </div>
+        </div>
+        <p id="columns-remaining"></p>
+        <button type="button" id="prev2">Précédent</button>
+        <button type="button" id="next2">Suivant</button>
+    </div>
+
+    <div id="step3" style="display:none;">
+        <h3>Étape 3: Sélectionner la date de saisie</h3>
+        <label for="date_selection">Date de saisie (YYYY-MM-DD):</label>
+        <input type="date" id="date_selection" name="date_selection" required pattern="\d{4}-\d{2}-\d{2}">
+        <button type="button" id="prev3">Précédent</button>
+        <button type="button" id="next3">Suivant</button>
+    </div>
+
+    <div id="step4" style="display:none;">
+        <h3>Étape 4: Vérification et validation</h3>
+        <div id="selection-summary"></div>
+        <button type="button" id="prev4">Précédent</button>
+        <button type="button" id="validate">Valider la sélection</button>
+    </div>
+</form>
+
+<div id="selection-result" style="display:none;">
+    <h2>Résultat de la sélection</h2>
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+<div>
+    <h3>Ou télécharger un fichier PDF</h3>
+    <input type="file" name="pdf_file" accept=".pdf">
+</div>
+<button type="submit">Charger les données</button>
+
+{% if selected_data %}
+    <h2>Données sélectionnées</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                {% for column in selected_columns %}
+                    <th>{{ column }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in selected_data %}
+                <tr>
+                    <td>{{ row.date }}</td>
+                    {% for column in selected_columns %}
+                        <td>{{ row|get_item:column }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Créer une nouvelle analyse</h2>
+    <form method="post" action="{% url 'create_analysis' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <label for="analysis_type">Type d'analyse:</label>
+        <select name="analysis_type" id="analysis_type" required>
+            <option value="table">Tableau statistique</option>
+            <option value="chart">Diagramme statistique</option>
+        </select>
+        <button type="submit">Créer l'analyse</button>
+    </form>
+{% endif %}
+
+<h2>Vos analyses</h2>
+<ul>
+    {% for analysis in analyses %}
+    <li>
+        <a href="{% url 'visualization' analysis_id=analysis.id %}">
+            {{ analysis.title }}
+        </a>
+        ({{ analysis.created_at|date:"Y-m-d H:i" }})
+    </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .column-selection-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+    .column-selection {
+        display: flex;
+        flex-wrap: nowrap;
+    }
+    .column-block {
+        flex: 0 0 auto;
+        width: 250px;
+        margin-right: 20px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Le script s'exécute");
+    const form = document.getElementById('data-selection-form');
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+    const step4 = document.getElementById('step4');
+    const columnCount = document.getElementById('column_count');
+    const columnSelection = document.getElementById('column_selection');
+    const columnsRemaining = document.getElementById('columns-remaining');
+    const selectionSummary = document.getElementById('selection-summary');
+    const dateSelection = document.getElementById('date_selection');
+
+    // Fonction pour créer les blocs de colonnes
+    function createColumnBlocks() {
+        console.log("Création des blocs de colonnes");
+        const columnSelection = document.getElementById('column_selection');
+        const columns = [
+            'commune_id', 'event', '_program_stage_', '_date_de_saisie_', '_stored_by_',
+            '_created_by_', '_last_updated_by_', '_last_updated_on_', 'sync_status',
+            '_scheduled_date_', 'geometry', 'longitude', 'latitude', '_organisation_unit_name_',
+            'communes', 'code_departement', 'code_arrondissement', 'region',
+            '_organisation_unit_name_hierarchy_', '_organisation_unit_code_', '_program_status_',
+            '_event_status_', '_organisation_unit_', 'bunec_qualite_officier', 'date_naiss',
+            'nationalite_mere', 'officier', 'domicile_mere', 'poids_naiss', 'noms_pere',
+            'test_variable', 'niveau_scol_mere', 'date_mere', 'telephone_mere', 'telephone_pere',
+            'domicile_pere', 'ref_doc_mere', 'lieu_naiss', 'bunec_date_dernier_deces_vivant',
+            'taille_naiss', 'bunec_nationalite_pere', 'profession_mere', 'type_naissance',
+            'bunec_signature_officier', 'bunec_telephone_declarant', 'num_dec',
+            'bunec_signature_personne_en_charge', 'profession_pere', 'lieu_mere', 'declarant',
+            'noms_enfant', 'date_pere', 'bunec_niveau_scol_pere', 'situation_matrimoniale',
+            'bunec_code_arrondissement_cec', 'bunec_date_of_death_sk', 'bunec_date_repection',
+            'bunec_nb_enfants_vivant', 'rang_naiss', 'bunec_personne_assist_mere',
+            'date_dec_naiss', 'ref_doc_pere', 'sexe', 'bunec_duree_residence',
+            '_crvs_birth_déclarations_hospitalières_de_naissance_', 'bunec_nb_deces_foetal',
+            'bunec_date_signature', 'bunec_date_signature_declarant', 'bunec_lieu_naissance',
+            'noms_mere', 'code_departement_1', 'bunec_signature_declarant',
+            'bunec_code_arrondissement_attestation', 'prenoms_enfant', 'qualite', 'import_date'
+        ];
+
+        let currentBlock;
+        columns.forEach((column, index) => {
+            if (index % 15 === 0) {
+                currentBlock = document.createElement('div');
+                currentBlock.className = 'column-block';
+                columnSelection.appendChild(currentBlock);
+            }
+            const label = document.createElement('label');
+            label.innerHTML = `
+                <input type="checkbox" name="columns" value="${column}">
+                ${column}
+            `;
+            currentBlock.appendChild(label);
+            currentBlock.appendChild(document.createElement('br'));
+        });
+    }
+
+    // Vérifier si les éléments existent avant d'ajouter des écouteurs d'événements
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (selectionResult) {
+                selectionResult.style.display = 'block';
+            }
+        });
+    }
+
+    if (document.getElementById('next1')) {
+    document.getElementById('next1').addEventListener('click', function() {
+        if (columnCount && columnCount.value >= 1 && columnCount.value <= 4) {
+            if (step1) step1.style.display = 'none';
+            if (step2) step2.style.display = 'block';
+               createColumnBlocks(); // Appel de la fonction ici
+               updateColumnsRemaining();
+            }
+        }); 
+    }
+
+    if (document.getElementById('prev2')) {
+        document.getElementById('prev2').addEventListener('click', function() {
+            if (step2) step2.style.display = 'none';
+            if (step1) step1.style.display = 'block';
+        });
+    }
+
+    if (document.getElementById('next2')) {
+        document.getElementById('next2').addEventListener('click', function() {
+            if (getSelectedColumns().length === parseInt(columnCount.value)) {
+                if (step2) step2.style.display = 'none';
+                if (step3) step3.style.display = 'block';
+            } else {
+                alert('Veuillez sélectionner le bon nombre de colonnes.');
+            }
+        });
+    }
+
+    if (document.getElementById('prev3')) {
+        document.getElementById('prev3').addEventListener('click', function() {
+            if (step3) step3.style.display = 'none';
+            if (step2) step2.style.display = 'block';
+        });
+    }
+
+    if (document.getElementById('next3')) {
+        document.getElementById('next3').addEventListener('click', function() {
+            if (step3) step3.style.display = 'none';
+            if (step4) step4.style.display = 'block';
+            updateSelectionSummary();
+        });
+    }
+
+    if (document.getElementById('prev4')) {
+        document.getElementById('prev4').addEventListener('click', function() {
+            if (step4) step4.style.display = 'none';
+            if (step3) step3.style.display = 'block';
+        });
+    }
+
+    if (columnSelection) {
+        columnSelection.addEventListener('change', updateColumnsRemaining);
+    }
+
+    if (validateButton) {
+        validateButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetchSelectedData();
+        });
+    }
+
+    if (analyzeDataButton) {
+        analyzeDataButton.addEventListener('click', function() {
+            window.location.href = "{% url 'create_analysis' %}";
+        });
+    }
+
+    function updateColumnsRemaining() {
+        if (columnCount && columnsRemaining) {
+            const selected = getSelectedColumns();
+            const remaining = columnCount.value - selected.length;
+            columnsRemaining.textContent = `Il vous reste ${remaining} colonne(s) à sélectionner.`;
+        }
+    }
+
+    function getSelectedColumns() {
+        if (columnSelection) {
+            return Array.from(columnSelection.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        }
+        return [];
+    }
+
+    function updateSelectionSummary() {
+        if (selectionSummary && dateSelection) {
+            const selectedColumns = getSelectedColumns();
+            const selectedDate = dateSelection.value;
+            selectionSummary.innerHTML = `
+                
+            Colonnes sélectionnées : ${selectedColumns.join(', ')}
+
+
+                
+               Date sélectionnée : ${selectedDate}
+
+
+            `;
+        }
+    }
+
+    function fetchSelectedData() {
+        const selectedColumns = getSelectedColumns();
+        const selectedDate = dateSelection ? dateSelection.value : '';
+
+        fetch("{% url 'get_selected_data' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                columns: selectedColumns,
+                date: selectedDate
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            displaySelectedData(data);
+        })
+        .catch(error => {
+            console.error('Erreur lors de la récupération des données:', error);
+        });
+     }
+
+    function displaySelectedData(data) {
+        const resultTable = document.getElementById('result-table');
+        if (resultTable) {
+            const thead = resultTable.querySelector('thead tr');
+            const tbody = resultTable.querySelector('tbody');
+
+            if (thead && tbody) {
+                thead.innerHTML = 'Date de saisie';
+                tbody.innerHTML = '';
+
+                data.columns.forEach(column => {
+                    if (column !== '_date_de_saisie_') {
+                        const th = document.createElement('th');
+                        th.textContent = column;
+                        thead.appendChild(th);
+                    }
+                });
+
+                data.rows.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `${row._date_de_saisie_.split(' ')[0]}`;
+                    data.columns.forEach(column => {
+                        if (column !== '_date_de_saisie_') {
+                            tr.innerHTML += `${row[column]}`;
+                        }
+                    });
+                    tbody.appendChild(tr);
+                });
+
+                document.getElementById('selection-result').style.display = 'block';
+            }
+        }
+    }
+
+    const validateButton = document.getElementById('validate');
+    if (validateButton) {
+        validateButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetchSelectedData();
+        });
+    }
+
+    // Appeler la fonction pour créer les blocs de colonnes
+    createColumnBlocks();
+});
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        document.getElementById('selection-result').style.display = 'block';
+    });
+
+</script>
+{% endblock %}

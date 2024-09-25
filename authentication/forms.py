@@ -1,33 +1,27 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import CustomUser
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
-#from captcha.fields import ReCaptchaField
+from axes.backends import AxesBackend
+from django.contrib.auth import get_user_model
+from authentication.models import Authenticate
+
+User = get_user_model()
 
 class CustomUserCreationForm(UserCreationForm):
-    user_type = forms.ChoiceField(choices=CustomUser.USER_TYPE_CHOICES)
-    phone_number = forms.CharField(max_length=15, required=False)
-    department = forms.CharField(max_length=100, required=False)
-    #captcha = ReCaptchaField()
+    email = forms.EmailField(required=True)
+    role = forms.ChoiceField(choices=User.ROLE_CHOICES)
 
-    class Meta(UserCreationForm.Meta):
-        model = CustomUser
-        fields = UserCreationForm.Meta.fields + ('email', 'user_type', 'phone_number', 'department')
+    class Meta:
+        model = User
+        fields = ("username", "email", "role", "password1", "password2")
 
-    def clean_password1(self):
-        password1 = self.cleaned_data.get('password1')
-        if len(password1) < 8:
-            raise ValidationError(_("Le mot de passe doit contenir au moins 8 caractères."))
-        if not any(char.isdigit() for char in password1):
-            raise ValidationError(_("Le mot de passe doit contenir au moins un chiffre."))
-        if not any(char.isupper() for char in password1):
-            raise ValidationError(_("Le mot de passe doit contenir au moins une lettre majuscule."))
-        return password1
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data["email"]
+        user.role = self.cleaned_data["role"]
+        if commit:
+            user.save()
+        return user
 
 class CustomAuthenticationForm(AuthenticationForm):
-    #captcha = ReCaptchaField()
-
-    def confirm_login_allowed(self, user):
-        if not user.is_active:
-            raise ValidationError(_("Ce compte est inactif."), code='inactive')
+    username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))

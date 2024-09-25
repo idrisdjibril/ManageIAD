@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h1>Sélection des données</h1>
+
+<form method="post" action="{% url 'select_data' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div>
+        <h3>Sélectionner depuis le tableau de données</h3>
+        <label for="column_count">Nombre de colonnes (1-4):</label>
+        <input type="number" id="column_count" name="column_count" min="1" max="4" required>
+        
+        <div id="column_selection" style="display:none;">
+            <label for="columns">Sélectionnez les colonnes:</label>
+            <select name="columns" id="columns" multiple required>
+                {% for column in data_columns %}
+                    <option value="{{ column }}">{{ column }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <label for="date_selection">Date de saisie:</label>
+        <input type="date" id="date_selection" name="date_selection" required>
+    </div>
+    <div>
+        <h3>Ou télécharger un fichier PDF</h3>
+        <input type="file" name="pdf_file" accept=".pdf">
+    </div>
+    <button type="submit">Charger les données</button>
+</form>
+
+<script>
+document.getElementById('column_count').addEventListener('change', function() {
+    var count = this.value;
+    var columnSelection = document.getElementById('column_selection');
+    var columnsSelect = document.getElementById('columns');
+    
+    if (count >= 1 && count <= 4) {
+        columnSelection.style.display = 'block';
+        columnsSelect.setAttribute('size', count);
+        columnsSelect.setAttribute('multiple', 'multiple');
+    } else {
+        columnSelection.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

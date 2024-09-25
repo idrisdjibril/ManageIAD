@@ -1,0 +1,426 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h1>Tableau de bord d'analyse de données</h1>
+
+<div id="dataSelectionForm">
+    <h2>Sélection des données</h2>
+    <div class="form-group">
+        <label for="columns">Colonnes à analyser:</label>
+        <select id="columns" multiple>
+            <!-- Les options seront ajoutées dynamiquement -->
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="startDate">Date de début:</label>
+        <input type="date" id="startDate">
+    </div>
+    <div class="form-group">
+        <label for="endDate">Date de fin:</label>
+        <input type="date" id="endDate">
+    </div>
+    <button onclick="fetchData()">Rechercher</button>
+</div>
+
+<div id="resultsTable" style="display:none;">
+    <h2>Résultats de la recherche</h2>
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <!-- Les en-têtes seront ajoutés dynamiquement -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Les données seront ajoutées dynamiquement -->
+        </tbody>
+    </table>
+    <div id="totals">
+        <!-- Les totaux seront ajoutés dynamiquement -->
+    </div>
+</div>
+
+<div id="chartOptions" style="display:none;">
+    <h2>Générer un diagramme</h2>
+    <div class="form-group">
+        <label for="chartType">Type de diagramme:</label>
+        <select id="chartType">
+            <option value="bar">Diagramme en barres</option>
+            <option value="line">Diagramme en ligne</option>
+            <option value="pie">Diagramme circulaire</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="xAxis">Axe X:</label>
+        <select id="xAxis">
+            <!-- Les options seront ajoutées dynamiquement -->
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="yAxis">Axe Y:</label>
+        <select id="yAxis">
+            <!-- Les options seront ajoutées dynamiquement -->
+        </select>
+    </div>
+    <button onclick="generateChart()">Générer le diagramme</button>
+</div>
+
+<div id="chartContainer" class="chart-container" style="display:none;">
+    <canvas id="chart"></canvas>
+</div>
+
+<button onclick="savePDF()" style="display:none;" id="savePDFButton">Enregistrer en PDF</button>
+
+<div id="decisionPanel" style="display:none;">
+    <h2>Aide à la décision</h2>
+    <div id="decisionSuggestions">
+        <!-- Les suggestions d'aide à la décision seront ajoutées dynamiquement -->
+    </div>
+    <div class="form-group">
+        <label for="decisionNote">Notes de décision:</label>
+        <textarea id="decisionNote" rows="4" cols="50"></textarea>
+    </div>
+    <button onclick="saveDecision()">Enregistrer la décision</button>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 20px;
+        background-color: #ffe1be;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+        color: #333;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+    input[type="text"], input[type="date"], select, textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    button {
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    .chart-container {
+        margin-top: 20px;
+    }
+    #decisionPanel {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    let userData = [];
+    let chart = null;
+
+    // Simuler la récupération des colonnes de la base de données
+    const databaseColumns = [
+        'commune_id', 'event', '_program_stage_', '_date_de_saisie_', '_stored_by_',
+        '_created_by_', '_last_updated_by_', '_last_updated_on_', 'sync_status',
+        '_scheduled_date_', 'geometry', 'longitude', 'latitude', '_organisation_unit_name_',
+        'communes', 'code_departement', 'code_arrondissement', 'region',
+        '_organisation_unit_name_hierarchy_', '_organisation_unit_code_', '_program_status_',
+        '_event_status_', '_organisation_unit_', 'bunec_qualite_officier', 'date_naiss',
+        'nationalite_mere', 'officier', 'domicile_mere', 'poids_naiss', 'noms_pere',
+        'test_variable', 'niveau_scol_mere', 'date_mere', 'telephone_mere', 'telephone_pere',
+        'domicile_pere', 'ref_doc_mere', 'lieu_naiss', 'bunec_date_dernier_deces_vivant',
+        'taille_naiss', 'bunec_nationalite_pere', 'profession_mere', 'type_naissance',
+        'bunec_signature_officier', 'bunec_telephone_declarant', 'num_dec',
+        'bunec_signature_personne_en_charge', 'profession_pere', 'lieu_mere', 'declarant',
+        'noms_enfant', 'date_pere', 'bunec_niveau_scol_pere', 'situation_matrimoniale',
+        'bunec_code_arrondissement_cec', 'bunec_date_of_death_sk', 'bunec_date_repection',
+        'bunec_nb_enfants_vivant', 'rang_naiss', 'bunec_personne_assist_mere',
+        'date_dec_naiss', 'ref_doc_pere', 'sexe', 'bunec_duree_residence',
+        '_crvs_birth_déclarations_hospitalières_de_naissance_', 'bunec_nb_deces_foetal',
+        'bunec_date_signature', 'bunec_date_signature_declarant', 'bunec_lieu_naissance',
+        'noms_mere', 'code_departement_1', 'bunec_signature_declarant',
+        'bunec_code_arrondissement_attestation', 'prenoms_enfant', 'qualite', 'import_date'
+    ];
+
+    // Ajouter les colonnes au sélecteur
+    const columnsSelect = document.getElementById('columns');
+    databaseColumns.forEach(column => {
+        const option = document.createElement('option');
+        option.value = column;
+        option.textContent = column;
+        columnsSelect.appendChild(option);
+    });
+
+    function fetchData() {
+        // Simuler une requête à la base de données
+        const selectedColumns = Array.from(columnsSelect.selectedOptions).map(option => option.value);
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        // Ici, vous feriez normalement une requête AJAX à votre backend
+        // Pour cet exemple, nous allons générer des données aléatoires
+        userData = generateRandomData(selectedColumns, startDate, endDate);
+
+        displayResults(userData);
+        document.getElementById('resultsTable').style.display = 'block';
+        document.getElementById('chartOptions').style.display = 'block';
+        document.getElementById('savePDFButton').style.display = 'block';
+        
+        // Mettre à jour les options pour les axes du graphique
+        updateChartAxisOptions(selectedColumns);
+    }
+
+    function generateRandomData(columns, startDate, endDate) {
+        const data = [];
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const daysBetween = (end - start) / (1000 * 60 * 60 * 24);
+
+        for (let i = 0; i <= daysBetween; i++) {
+            const currentDate = new Date(start.getTime() + i * (1000 * 60 * 60 * 24));
+            const row = {
+                _date_de_saisie_: currentDate.toISOString().split('T')[0]
+            };
+
+            columns.forEach(column => {
+                if (column !== '_date_de_saisie_') {
+                    row[column] = Math.floor(Math.random() * 1000);
+                }
+            });
+
+            data.push(row);
+        }
+
+        return data;
+    }
+
+    function displayResults(data) {
+        const table = document.getElementById('dataTable');
+        const thead = table.querySelector('thead tr');
+        const tbody = table.querySelector('tbody');
+        const totalsDiv = document.getElementById('totals');
+
+        // Vider le tableau et les totaux
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+        totalsDiv.innerHTML = '';
+
+        // Ajouter les en-têtes
+        Object.keys(data[0]).forEach(key => {
+            const th = document.createElement('th');
+            th.textContent = key;
+            thead.appendChild(th);
+        });
+
+        // Ajouter les données
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            Object.values(row).forEach(value => {
+                const td = document.createElement('td');
+                td.textContent = value;
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+
+        // Calculer et afficher les totaux
+        const totals = {};
+        Object.keys(data[0]).forEach(key => {
+            if (key !== '_date_de_saisie_') {
+                totals[key] = data.reduce((sum, row) => sum + row[key], 0);
+            }
+        });
+
+        Object.entries(totals).forEach(([key, value]) => {
+            const p = document.createElement('p');
+            p.textContent = `Total ${key}: ${value}`;
+            totalsDiv.appendChild(p);
+        });
+    }
+
+    function updateChartAxisOptions(columns) {
+        const xAxis = document.getElementById('xAxis');
+        const yAxis = document.getElementById('yAxis');
+
+        xAxis.innerHTML = '';
+        yAxis.innerHTML = '';
+
+        columns.forEach(column => {
+            const xOption = document.createElement('option');
+            xOption.value = column;
+            xOption.textContent = column;
+            xAxis.appendChild(xOption);
+
+            const yOption = document.createElement('option');
+            yOption.value = column;
+            yOption.textContent = column;
+            yAxis.appendChild(yOption);
+        });
+    }
+
+    function generateChart() {
+        const chartType = document.getElementById('chartType').value;
+        const xAxis = document.getElementById('xAxis').value;
+        const yAxis = document.getElementById('yAxis').value;
+
+        const ctx = document.getElementById('chart').getContext('2d');
+
+        if (chart) {
+            chart.destroy();
+        }
+
+        // Définir un ensemble de couleurs
+        const colors = [
+            'rgba(255, 99, 132, 0.7)',   // Rouge
+            'rgba(54, 162, 235, 0.7)',   // Bleu
+            'rgba(255, 206, 86, 0.7)',   // Jaune
+            'rgba(75, 192, 192, 0.7)',   // Vert
+            'rgba(153, 102, 255, 0.7)',  // Violet
+            'rgba(255, 159, 64, 0.7)',   // Orange
+            'rgba(199, 199, 199, 0.7)',  // Gris
+            'rgba(83, 102, 255, 0.7)',   // Indigo
+            'rgba(255, 99, 255, 0.7)',   // Rose
+            'rgba(159, 159, 64, 0.7)'    // Olive
+        ];
+
+        const chartData = {
+            labels: userData.map(row => row[xAxis]),
+            datasets: [{
+                label: yAxis,
+                data: userData.map(row => row[yAxis]),
+                backgroundColor: chartType === 'pie' ? colors : colors[0],
+                borderColor: chartType === 'line' ? colors[0] : 'rgba(255, 255, 255, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        const options = {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        };
+
+        // Ajuster les options pour le diagramme circulaire
+        if (chartType === 'pie') {
+            options.scales = {}; // Supprimer les échelles pour le diagramme circulaire
+        }
+
+        chart = new Chart(ctx, {
+            type: chartType,
+            data: chartData,
+            options: options
+        });
+
+        document.getElementById('chartContainer').style.display = 'block';
+        document.getElementById('decisionPanel').style.display = 'block';
+
+        // Générer des suggestions d'aide à la décision
+        generateDecisionSuggestions(chartData, chartType, xAxis, yAxis);
+    }
+
+    function generateDecisionSuggestions(chartData, chartType, xAxis, yAxis) {
+        const suggestionsDiv = document.getElementById('decisionSuggestions');
+        suggestionsDiv.innerHTML = '';
+
+        const data = chartData.datasets[0].data;
+        const labels = chartData.labels;
+
+        const average = data.reduce((a, b) => a + b, 0) / data.length;
+        const max = Math.max(...data);
+        const min = Math.min(...data);
+        const maxIndex = data.indexOf(max);
+        const minIndex = data.indexOf(min);
+
+        const suggestions = [
+            `La moyenne des ${yAxis} est de ${average.toFixed(2)}.`,
+            `La valeur la plus élevée de ${yAxis} est ${max} (${labels[maxIndex]}).`,
+            `La valeur la plus basse de ${yAxis} est ${min} (${labels[minIndex]}).`,
+        ];
+
+        if (chartType === 'line') {
+            const trend = data[data.length - 1] > data[0] ? 'croissante' : 'décroissante';
+            suggestions.push(`La tendance générale pour ${yAxis} est ${trend}.`);
+        }
+
+        suggestions.forEach(suggestion => {
+            const p = document.createElement('p');
+            p.textContent = suggestion;
+            suggestionsDiv.appendChild(p);
+        });
+    }
+
+    function saveDecision() {
+        const decision = document.getElementById('decisionNote').value;
+        // Ici, vous implémenteriez la logique pour sauvegarder la décision
+        alert('Décision enregistrée : ' + decision);
+    }
+
+    function savePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Capture the HTML content
+        html2canvas(document.querySelector('.container')).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const imgProps = doc.getImageProperties(imgData);
+            const pdfWidth = doc.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            
+            doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            doc.save('dashboard_report.pdf');
+        });
+    }
+</script>
+{% endblock %}
